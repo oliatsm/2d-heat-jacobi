@@ -41,8 +41,8 @@ int main(int argc, char** argv)
     const double tol = 1.0e-6;
     double error = 1.0;
 
-    double *restrict A    = (double*)malloc(sizeof(double)*n*m);
-    double *restrict Anew = (double*)malloc(sizeof(double)*n*m);
+    double *A    = (double*)malloc(sizeof(double)*n*m);
+    double *Anew = (double*)malloc(sizeof(double)*n*m);
     
     initialize(A, Anew, m, n);
         

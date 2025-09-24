@@ -25,13 +25,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
  
-void initialize(double *restrict A, double *restrict Anew, int m, int n);
+void initialize(double *A, double *Anew, int m, int n);
 
-double calcNext(double *restrict A, double *restrict Anew, int m, int n);
+double calcNext(double *A, double *Anew, int m, int n);
         
-void swap(double *restrict A, double *restrict Anew, int m, int n);
+void swap(double *A, double *Anew, int m, int n);
 
-void deallocate(double *restrict A, double *restrict Anew);
+void deallocate(double *A, double *Anew);
 
-int file_output(double *A, int n, int m, char* file_name);
+int file_output(double *A, int n, int m, const char *file_name);
 

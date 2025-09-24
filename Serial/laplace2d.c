@@ -33,7 +33,7 @@
 
 #define OFFSET(x, y, m) (((x)*(m)) + (y))
 
-void initialize(double *restrict A, double *restrict Anew, int m, int n)
+void initialize(double *A, double *Anew, int m, int n)
 {
     memset(A, 0, n * m * sizeof(double));
     memset(Anew, 0, n * m * sizeof(double));
@@ -44,7 +44,7 @@ void initialize(double *restrict A, double *restrict Anew, int m, int n)
     }
 }
 
-double calcNext(double *restrict A, double *restrict Anew, int m, int n)
+double calcNext(double *A, double *Anew, int m, int n)
 {
     double error = 0.0;
     for( int j = 1; j < n-1; j++)
@@ -59,7 +59,7 @@ double calcNext(double *restrict A, double *restrict Anew, int m, int n)
     return error;
 }
         
-void swap(double *restrict A, double *restrict Anew, int m, int n)
+void swap(double *A, double *Anew, int m, int n)
 {
     for( int j = 1; j < n-1; j++)
     {
@@ -70,13 +70,13 @@ void swap(double *restrict A, double *restrict Anew, int m, int n)
     }
 }
 
-void deallocate(double *restrict A, double *restrict Anew)
+void deallocate(double *A, double *Anew)
 {
     free(A);
     free(Anew);
 }
 
-int file_output(double *A, int n, int m, char* file_name){
+int file_output(double *A, int n, int m, const char *file_name){
 
     FILE* output;
     output = fopen(file_name,"w");

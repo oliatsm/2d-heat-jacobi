@@ -1,4 +1,4 @@
 # compile
 ```
-$ nvcc -Xcompiler -fopenmp -arch=sm_89 jacobi.cu laplace2d.c -o laplace
+$ nvcc -Xcompiler -fopenmp -arch=sm_89 jacobi.cpp laplace2d.cu -o laplace
 ```

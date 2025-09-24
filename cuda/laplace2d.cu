@@ -92,7 +92,7 @@ void deallocate(double *A, double *Anew, double *d_A, double *d_Anew)
     cudaFree(d_Anew);
 }
 
-int file_output(double *A, int n, int m, char* file_name){
+int file_output(double *A, int n, int m, const char *file_name){
 
     FILE* output;
     output = fopen(file_name,"w");
