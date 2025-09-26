@@ -35,8 +35,8 @@
 
 int main(int argc, char** argv)
 {
-    const int n = 4096;
-    const int m = 4096;
+    const int n = 4096/4;
+    const int m = 4096/4;
     const int iter_max = 1000;
     
     const double tol = 1.0e-6;
@@ -70,6 +70,8 @@ int main(int argc, char** argv)
     double runtime = omp_get_wtime() - st;
  
     printf(" total: %f s\n", runtime);
+
+    file_output(h_Anew,n,m,"output.1024-2.txt");
 
     deallocate(h_A, h_Anew,d_A,d_Anew);
 

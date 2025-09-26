@@ -50,26 +50,80 @@ void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m,
 }
 
 
+__global__ void stencil(double *d_A, double *d_Anew, const int m, const int n){
+
+    // extern __shared__ double s_data[]; // size = (blockDim.x+2)*(blockDim.y+2)
+
+    int i = threadIdx.x + blockDim.x*blockIdx.x+1;
+    int j = threadIdx.y + blockDim.y*blockIdx.y+1;
+
+    // int s_i = threadIdx.x + 1;
+    // int s_j = threadIdx.y + 1;
+
+    // int SM_WIDTH = blockDim.x + 2;
+
+    if(i>=0 && j>=0 && i<n-1 && j<m-1){
+    // s_data[OFFSET(s_j,s_i,SM_WIDTH)] = d_A[OFFSET(j,i,m)];
+    // if(threadIdx.x< 1 && i>0){
+    //     s_data[OFFSET(s_j,s_i-1,SM_WIDTH)] = d_A[OFFSET(j,i-1,m)];
+    // }
+    // if(threadIdx.y < 1 && j>0){
+    //     s_data[OFFSET(s_j-1,s_i,SM_WIDTH)] = d_A[OFFSET(j-1,i,m)];
+    // }
+    // if(threadIdx.x == blockDim.x-1 && i<n-1){
+    //     s_data[OFFSET(s_j,s_i+1,SM_WIDTH)] = d_A[OFFSET(j,i+1,m)];
+    // }
+    // if(threadIdx.y==blockDim.y-1 && j<m-1){
+    //     s_data[OFFSET(s_j+1,s_i,SM_WIDTH)] = d_A[OFFSET(j+1,i,m)];
+    // }
+    // __syncthreads();
+
+    d_Anew[OFFSET(j,i,m)] = 0.25 * ( d_A[OFFSET(j, i+1, m)] + d_A[OFFSET(j, i-1, m)]
+                                           + d_A[OFFSET(j-1, i, m)] + d_A[OFFSET(j+1, i, m)]);
+    }
+    
+
+}
+
 double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, int n)
 {
     double error = 0.0;
 
-    // dim3 block(16,16);
-    // dim3 grid((m + block.x - 1) / block.x,
-    //           (n + block.y - 1) / block.y);
+    // for( int j = 1; j < n-1; j++)
+    // {
+    //     for( int i = 1; i < m-1; i++ )
+    //     {
+    //         h_Anew[OFFSET(j, i, m)] = 0.25 * ( h_A[OFFSET(j, i+1, m)] + h_A[OFFSET(j, i-1, m)]
+    //                                        + h_A[OFFSET(j-1, i, m)] + h_A[OFFSET(j+1, i, m)]);
+    //     }
+    // }
+        printf("A: %f %f %f, Anew %f %f %f \n",h_A[0],h_A[n],h_A[n*m-1],h_Anew[0],h_Anew[n],h_Anew[n*m-1]);
 
-    // calcNext_cu<<<grid, block>>>(d_A, d_Anew, m, n);
-    // cudaDeviceSynchronize();
-    //  printf("A: %f %f %f, Anew %f %f %f \n",h_A[0],h_A[n],h_A[n*m-1],h_Anew[0],h_Anew[n],h_Anew[n*m-1]);
+
+    dim3 block(16,16);
+    dim3 grid((n+block.x-1)/block.x,(m+block.y-1)/block.y);
+
+    int sharedMem = (block.x+2) * (block.y+2) * sizeof(double);
+
+    stencil<<<grid,block>>>(d_A,d_Anew,m,n);
+
+    cudaDeviceSynchronize();
+
+        
+    cudaMemcpy(h_A,d_A,n*m* sizeof(double),cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_Anew,d_Anew,n*m* sizeof(double),cudaMemcpyDeviceToHost);
+    printf("A: %f %f %f, Anew %f %f %f \n",h_A[0],h_A[n],h_A[n*m-1],h_Anew[0],h_Anew[n],h_Anew[n*m-1]);
+
+
+
     for( int j = 1; j < n-1; j++)
     {
         for( int i = 1; i < m-1; i++ )
         {
-            h_Anew[OFFSET(j, i, m)] = 0.25 * ( h_A[OFFSET(j, i+1, m)] + h_A[OFFSET(j, i-1, m)]
-                                           + h_A[OFFSET(j-1, i, m)] + h_A[OFFSET(j+1, i, m)]);
             error = fmax( error, fabs(h_Anew[OFFSET(j, i, m)] - h_A[OFFSET(j, i , m)]));
         }
     }
+
     return error;
 }
         
