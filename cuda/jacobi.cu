@@ -53,9 +53,7 @@ int main(int argc, char** argv)
     cudaMalloc((void**)&d_Anew,bytes);
 
     initialize(h_A, h_Anew, d_A, d_Anew, m, n);
-
-    printf("A: %f %f %f, Anew %f %f %f \n",h_A[0],h_A[n],h_A[n*m-1],h_Anew[0],h_Anew[n],h_Anew[n*m-1]);
-        
+       
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
     
     double st = omp_get_wtime();

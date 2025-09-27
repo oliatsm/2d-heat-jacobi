@@ -48,7 +48,6 @@ int main(int argc, char** argv)
         
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
     // file_output(Anew,n,m,"input.txt");
-
     
     double st = omp_get_wtime();
     int iter = 0;
