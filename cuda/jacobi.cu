@@ -64,12 +64,8 @@ int main(int argc, char** argv)
     while ( error > tol && iter < iter_max )
     {
         error = calcNext(h_A, h_Anew, d_A, d_Anew, m, n);
-        swap(h_A, h_Anew, m, n);
+        swap(d_A, d_Anew, m, n);
         
-        cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
-
-
         if(iter % 100 == 0) printf("%5d, %0.6f\n", iter, error);
         
         iter++;
@@ -79,6 +75,11 @@ int main(int argc, char** argv)
     double runtime = omp_get_wtime() - st;
  
     printf(" total: %f s\n", runtime);
+
+    cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
+
+    file_output(h_Anew,n,m,"output-swap.txt");
 
     deallocate(h_A, h_Anew,d_A,d_Anew);
 

@@ -111,16 +111,35 @@ double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, 
 
     return error;
 }
-        
-void swap(double *A, double *Anew, int m, int n)
-{
-    for( int j = 1; j < n-1; j++)
-    {
-        for( int i = 1; i < m-1; i++ )
-        {
-            A[OFFSET(j, i, m)] = Anew[OFFSET(j, i, m)];    
-        }
+
+__global__
+void swap_cu(double *A, double *Anew, int m, int n){
+
+    int i = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int j = blockIdx.y*blockDim.y + threadIdx.y+1;
+
+    if(i<(n-1) && j<(m-1)){
+        A[OFFSET(j, i, m)] = Anew[OFFSET(j, i, m)];        
     }
+
+}
+        
+void swap(double *d_A, double *d_Anew, int m, int n)
+{
+
+    dim3 block(16,16);
+    dim3 grid((m + block.x - 1) / block.x,(n + block.y - 1) / block.y);
+
+
+    swap_cu<<<grid, block>>>(d_A, d_Anew, m, n);
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
+    }
+
+    cudaDeviceSynchronize();
+
 }
 
 void deallocate(double *A, double *Anew, double *d_A, double *d_Anew)
