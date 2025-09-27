@@ -64,12 +64,6 @@ void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m,
     }
     cudaDeviceSynchronize();
     
-    // cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
-    // cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
-
-    // file_output(h_A,n,m,"A.txt");
-    // file_output(h_Anew,n,m,"Anew.txt");
-    
 }
 
 __global__
