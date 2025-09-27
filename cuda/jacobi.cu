@@ -35,17 +35,22 @@
 
 int main(int argc, char** argv)
 {
-    const int n = 4096;
-    const int m = 4096;
+    const int n = 4096/4;
+    const int m = 4096/4;
     const int iter_max = 1000;
     
     const double tol = 1.0e-6;
     double error = 1.0;
 
-    double *h_A    = (double*)malloc(sizeof(double)*n*m);
-    double *h_Anew = (double*)malloc(sizeof(double)*n*m);
+    const unsigned int bytes = sizeof(double)*n*m;
+
+    double *h_A    = (double*)malloc(bytes);
+    double *h_Anew = (double*)malloc(bytes);
 
     double *d_A, *d_Anew;
+
+    cudaMalloc((void**)&d_A,bytes);
+    cudaMalloc((void**)&d_Anew,bytes);
 
     initialize(h_A, h_Anew, d_A, d_Anew, m, n);
 
@@ -60,6 +65,10 @@ int main(int argc, char** argv)
     {
         error = calcNext(h_A, h_Anew, d_A, d_Anew, m, n);
         swap(h_A, h_Anew, m, n);
+        
+        cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
+
 
         if(iter % 100 == 0) printf("%5d, %0.6f\n", iter, error);
         

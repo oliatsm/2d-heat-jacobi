@@ -9,89 +9,6 @@
 
 #define OFFSET(x, y, m) (((x)*(m)) + (y))
 
-__global__
-void initialize_cu(double * A, double * Anew, int m, int n)
-{
-    int i = blockIdx.x*blockDim.x + threadIdx.x;
-    if(i<n){
-    
-        A[i] = 1.0;
-        Anew[i] = 1.0;
-    }
-}
-
-void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m, int n)
-{
-    const unsigned int bytes = sizeof(double)*n*m;
-
-    memset(h_A, 0, bytes);
-    memset(h_Anew, 0, bytes);
-
-    cudaMalloc((void**)&d_A,bytes);
-    cudaMalloc((void**)&d_Anew,bytes);
-
-    cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
-
-    int blockSize = 256;
-    int numBlocks = (n + blockSize - 1) / blockSize; 
-
-    initialize_cu<<<numBlocks, blockSize>>>(d_A, d_Anew, m, n);
-
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
-    }
-    cudaDeviceSynchronize();
-    
-    cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
-    
-}
-
-
-double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, int n)
-{
-    double error = 0.0;
-
-    // dim3 block(16,16);
-    // dim3 grid((m + block.x - 1) / block.x,
-    //           (n + block.y - 1) / block.y);
-
-    // calcNext_cu<<<grid, block>>>(d_A, d_Anew, m, n);
-    // cudaDeviceSynchronize();
-    //  printf("A: %f %f %f, Anew %f %f %f \n",h_A[0],h_A[n],h_A[n*m-1],h_Anew[0],h_Anew[n],h_Anew[n*m-1]);
-    for( int j = 1; j < n-1; j++)
-    {
-        for( int i = 1; i < m-1; i++ )
-        {
-            h_Anew[OFFSET(j, i, m)] = 0.25 * ( h_A[OFFSET(j, i+1, m)] + h_A[OFFSET(j, i-1, m)]
-                                           + h_A[OFFSET(j-1, i, m)] + h_A[OFFSET(j+1, i, m)]);
-            error = fmax( error, fabs(h_Anew[OFFSET(j, i, m)] - h_A[OFFSET(j, i , m)]));
-        }
-    }
-    return error;
-}
-        
-void swap(double *A, double *Anew, int m, int n)
-{
-    for( int j = 1; j < n-1; j++)
-    {
-        for( int i = 1; i < m-1; i++ )
-        {
-            A[OFFSET(j, i, m)] = Anew[OFFSET(j, i, m)];    
-        }
-    }
-}
-
-void deallocate(double *A, double *Anew, double *d_A, double *d_Anew)
-{
-    free(A);
-    free(Anew);
-    cudaFree(d_A);
-    cudaFree(d_Anew);
-}
-
 int file_output(double *A, int n, int m, const char *file_name){
 
     FILE* output;
@@ -114,3 +31,109 @@ int file_output(double *A, int n, int m, const char *file_name){
     fclose(output);
     return 0;
 }
+
+__global__
+void initialize_cu(double * A, double * Anew, int m, int n)
+{
+    int i = blockIdx.x*blockDim.x + threadIdx.x;
+    if(i<n){
+    
+        A[OFFSET(0,i,m)] = 1.0;
+        Anew[OFFSET(0,i,m)] = 1.0;
+    }
+}
+
+void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m, int n)
+{
+    const unsigned int bytes = sizeof(double)*n*m;
+
+    memset(h_A, 0, bytes);
+    memset(h_Anew, 0, bytes);
+ 
+    cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
+
+    int blockSize = 256;
+    int numBlocks = (n + blockSize - 1) / blockSize; 
+
+    initialize_cu<<<numBlocks, blockSize>>>(d_A, d_Anew, m, n);
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
+    }
+    cudaDeviceSynchronize();
+    
+    // cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
+    // cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
+
+    // file_output(h_A,n,m,"A.txt");
+    // file_output(h_Anew,n,m,"Anew.txt");
+    
+}
+
+__global__
+void stencil_cu(double * A, double * Anew, int m, int n)
+{
+    int i = blockIdx.x*blockDim.x + threadIdx.x+1;
+    int j = blockIdx.y*blockDim.y + threadIdx.y+1;
+
+    if(i<(n-1) && j<(m-1)){
+    
+        Anew[OFFSET(j, i, m)] = 0.25 * ( A[OFFSET(j, i+1, m)] + A[OFFSET(j, i-1, m)] + A[OFFSET(j-1, i, m)] + A[OFFSET(j+1, i, m)]);
+    }
+}
+
+
+double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, int n)
+{
+    const unsigned int bytes = sizeof(double)*n*m;
+
+    dim3 block(16,16);
+    dim3 grid((m + block.x - 1) / block.x,(n + block.y - 1) / block.y);
+
+
+    stencil_cu<<<grid, block>>>(d_A, d_Anew, m, n);
+
+    cudaError_t err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
+    }
+
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
+
+    double error = 0.0;
+
+    for( int j = 1; j < n-1; j++)
+    {
+        for( int i = 1; i < m-1; i++ )
+        {
+            error = fmax( error, fabs(h_Anew[OFFSET(j, i, m)] - h_A[OFFSET(j, i , m)]));
+        }
+    }
+
+    return error;
+}
+        
+void swap(double *A, double *Anew, int m, int n)
+{
+    for( int j = 1; j < n-1; j++)
+    {
+        for( int i = 1; i < m-1; i++ )
+        {
+            A[OFFSET(j, i, m)] = Anew[OFFSET(j, i, m)];    
+        }
+    }
+}
+
+void deallocate(double *A, double *Anew, double *d_A, double *d_Anew)
+{
+    free(A);
+    free(Anew);
+    cudaFree(d_A);
+    cudaFree(d_Anew);
+}
+
