@@ -122,8 +122,10 @@ void max_reduce(double *A, double *Anew, int m, int n, double *d_max){
     int tid = threadIdx.x;
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if( i <n*m )
-        sdata[tid] = fabs(A[i]-Anew[i]);
+    double diff = 0.0;
+    if (i < n*m) diff = fabs(A[i] - Anew[i]);
+    sdata[tid] = diff;
+
     __syncthreads();
 
     // Calculate max for each block
@@ -137,7 +139,7 @@ void max_reduce(double *A, double *Anew, int m, int n, double *d_max){
 
     // each block returns local max value
     // d_max size: number of blocks (numBlocks)
-    // d_max index range from 0 to numBlocks
+    // d_max index range from 0 to numBlocks-1
     if (tid == 0){
         d_max[blockIdx.x] = sdata[0];
     }
@@ -145,7 +147,7 @@ void max_reduce(double *A, double *Anew, int m, int n, double *d_max){
 
 
 
-double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double *d_max, int maxSize)
+double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double *d_max, int blockSize, int numBlocks)
 {
     // Separate Anew calculation and error calculation
 
@@ -173,9 +175,7 @@ double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double
     double error = 0.0;
 
     // 1d me
-    int blockSize = maxSize;
-    int numBlocks = (n*m + blockSize - 1) / blockSize;
-    
+        
     max_reduce<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_A,d_Anew,m,n,d_max);
     cudaDeviceSynchronize();
     
@@ -184,7 +184,7 @@ double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double
         printf("Kernel launch error: %s\n", cudaGetErrorString(cuda_err));
     }
 
-    cudaMemcpy(h_max, d_max, maxSize*sizeof(double), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_max, d_max, numBlocks*sizeof(double), cudaMemcpyDeviceToHost);
 
     // final reduction for max
     error = h_max[0];

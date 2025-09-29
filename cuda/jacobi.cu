@@ -35,8 +35,8 @@
 
 int main(int argc, char** argv)
 {
-    const int n = 4096/8;
-    const int m = 4096/6;
+    const int n = 4096;
+    const int m = 4096;
     const int iter_max = 1000;
     
     const double tol = 1.0e-6;
@@ -53,10 +53,11 @@ int main(int argc, char** argv)
     cudaMalloc((void**)&d_Anew,bytes);
 
     // For Error calculation on device
-    int maxSize = 256;
+    int blockSize = 256;
+    int numBlocks = (n*m + blockSize - 1) / blockSize;
     // max array is used for local max calculation in each block
     // max[numBlocks]
-    int maxBytes = (n*m + maxSize - 1) / maxSize * sizeof(double);
+    int maxBytes = numBlocks * sizeof(double);
 
     double *h_max = (double*)malloc(maxBytes);
     double *d_max;
@@ -75,7 +76,7 @@ int main(int argc, char** argv)
    
     while ( error > tol && iter < iter_max )
     {
-        error = calcNext(d_A, d_Anew, m, n, h_max, d_max, maxSize);
+        error = calcNext(d_A, d_Anew, m, n, h_max, d_max, blockSize,numBlocks);
         swap(d_A, d_Anew, m, n);
         
         if(iter % 100 == 0) printf("%5d, %0.6f\n", iter, error);

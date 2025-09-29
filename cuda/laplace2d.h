@@ -30,7 +30,7 @@
 
 void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m, int n);
 
-double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double *d_max, int maxSize);
+double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double *d_max, int blockSize, int numBlocks);
         
 void swap(double *d_A, double *d_Anew, int m, int n);
 

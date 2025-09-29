@@ -34,8 +34,8 @@
 
 int main(int argc, char** argv)
 {
-    const int n = 4096/8;
-    const int m = 4096/6;
+    const int n = 4096;
+    const int m = 4096;
     const int iter_max = 1000;
     
     const double tol = 1.0e-6;
@@ -66,7 +66,7 @@ int main(int argc, char** argv)
  
     printf(" total: %f s\n", runtime);
 
-    file_output(Anew,n,m,"output.gold.txt");
+    file_output(Anew,m,n,"output.gold.txt");
 
     deallocate(A, Anew);
 
