@@ -28,8 +28,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <omp.h>
 
+#include "timer.h" //for GpuTimer
 #include "laplace2d.h"
 
 
@@ -56,7 +56,12 @@ int main(int argc, char** argv)
        
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
     
-    double st = omp_get_wtime();
+    // double st = omp_get_wtime();
+
+    GpuTimer timer;
+
+    timer.Start();
+
     int iter = 0;
    
     while ( error > tol && iter < iter_max )
@@ -70,14 +75,16 @@ int main(int argc, char** argv)
 
     }
 
-    double runtime = omp_get_wtime() - st;
- 
-    printf(" total: %f s\n", runtime);
+    timer.Stop();
 
-    cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
+    printf(" total: %f s\n", timer.Elapsed()/1000.0);
 
-    file_output(h_Anew,n,m,"output-swap.txt");
+    // Copy Data to host for output
+    
+    // cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
+    // cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
+
+    // file_output(h_Anew,n,m,"output.txt");
 
     deallocate(h_A, h_Anew,d_A,d_Anew);
 

@@ -190,14 +190,15 @@ double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, 
     return error;
 }
 
+// Copy Anew to A
 __global__
-void swap_cu(double *A, double *Anew, int m, int n){
+void swap_cu(double *d_A, double *d_Anew, int m, int n){
 
     int i = blockIdx.x*blockDim.x + threadIdx.x+1;
     int j = blockIdx.y*blockDim.y + threadIdx.y+1;
 
     if(i<(n-1) && j<(m-1)){
-        A[OFFSET(j, i, m)] = Anew[OFFSET(j, i, m)];        
+        d_A[OFFSET(j, i, m)] = d_Anew[OFFSET(j, i, m)];        
     }
 
 }
