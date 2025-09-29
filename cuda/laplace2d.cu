@@ -11,10 +11,10 @@
 // ──────────────────────────────────────────────────────────────
 // Coordinate convention used in this code:
 //
-//  • X dimension  →  columns   (i index)      →  max size = m
-//  • Y dimension  →  rows      (j index)      →  max size = n
+//  - X dimension  →  columns   (i index)      →  max size = m
+//  - Y dimension  →  rows      (j index)      →  max size = n
 //
-//  • OFFSET(row, col, m) gives the 1-D index for a 2-D array
+//  - OFFSET(row, col, m) gives the 1-D index for a 2-D array
 //    stored in row-major order, where `m` = total number of columns.
 //    Example: element at (row=j, col=i) is A[OFFSET(j, i, m)].
 //
