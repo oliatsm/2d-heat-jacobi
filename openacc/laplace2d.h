@@ -24,53 +24,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <omp.h>
-#include "laplace2d.h"
-
-
-int main(int argc, char** argv)
-{
-    const int n = 4096;
-    const int m = 4096;
-    const int iter_max = 1000;
-    
-    const double tol = 1.0e-6;
-    double error = 1.0;
-
-    double *A    = (double*)malloc(sizeof(double)*n*m);
-    double *Anew = (double*)malloc(sizeof(double)*n*m);
-    
-    initialize(A, Anew, m, n);
-        
-    printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
-    // file_output(Anew,n,m,"input.txt");
-    
-    double st = omp_get_wtime();
-    int iter = 0;
-   
-    while ( error > tol && iter < iter_max )
-    {
-        error = calcNext(A, Anew, m, n);
-        swap(A, Anew, m, n);
-
-        if(iter % 100 == 0) printf("%5d, %0.6f\n", iter, error);
-        
-        iter++;
-
-    }
-
-    double runtime = omp_get_wtime() - st;
  
-    printf(" total: %f s\n", runtime);
+void initialize(double *A, double *Anew, int m, int n);
 
-    file_output(Anew,n,m,"output.gold.txt");
+double calcNext(double *A, double *Anew, int m, int n);
+        
+void swap(double *A, double *Anew, int m, int n);
 
-    deallocate(A, Anew);
+void deallocate(double *A, double *Anew);
 
-    return 0;
-}
+int file_output(double *A, int n, int m, const char *file_name);
 

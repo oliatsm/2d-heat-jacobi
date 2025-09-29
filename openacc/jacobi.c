@@ -31,23 +31,22 @@
 #include <omp.h>
 #include "laplace2d.h"
 
-
 int main(int argc, char** argv)
 {
+
     const int n = 4096;
     const int m = 4096;
     const int iter_max = 1000;
-    
+
     const double tol = 1.0e-6;
     double error = 1.0;
 
-    double *A    = (double*)malloc(sizeof(double)*n*m);
-    double *Anew = (double*)malloc(sizeof(double)*n*m);
+    double *restrict A    = (double*)malloc(sizeof(double)*n*m);
+    double *restrict Anew = (double*)malloc(sizeof(double)*n*m);
     
     initialize(A, Anew, m, n);
         
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
-    // file_output(Anew,n,m,"input.txt");
     
     double st = omp_get_wtime();
     int iter = 0;
@@ -67,10 +66,7 @@ int main(int argc, char** argv)
  
     printf(" total: %f s\n", runtime);
 
-    file_output(Anew,n,m,"output.gold.txt");
-
     deallocate(A, Anew);
 
     return 0;
 }
-
