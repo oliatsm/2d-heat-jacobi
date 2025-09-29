@@ -169,8 +169,6 @@ double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double
         printf("Kernel launch error: %s\n", cudaGetErrorString(cuda_err));
     }
 
-    cudaDeviceSynchronize();
-
     cudaMemcpy(h_max, d_max, maxSize*sizeof(double), cudaMemcpyDeviceToHost);
 
     // final reduction for max
