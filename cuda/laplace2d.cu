@@ -78,10 +78,34 @@ void stencil_cu(double * A, double * Anew, int m, int n)
     }
 }
 
+__global__ void reduce0(double *A, double *Anew, int n, int m, double *d_max){
+    extern __shared__ double sdata[];  // stored in the shared memory
+
+    // Each thread loading one element from global onto shared memory
+    unsigned int tid = threadIdx.x;
+    unsigned int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if( i <n*m )
+        sdata[tid] = fabs(A[i]-Anew[i]);
+    __syncthreads();
+
+    // Reduction method -- occurs in shared memory
+    for(unsigned int s = 1; s < blockDim.x; s *= 2){
+        if (tid % (2 * s) == 0) {
+            // sdata[tid] += sdata[tid + s];
+            if(sdata[tid] < sdata[tid + s])
+                sdata[tid] = sdata[tid + s];   
+        }
+        __syncthreads();
+    }
+    if (tid == 0){
+        d_max[blockIdx.x] = sdata[0];
+    }
+}
+
+
 
 double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, int n)
 {
-    const unsigned int bytes = sizeof(double)*n*m;
 
     dim3 block(16,16);
     dim3 grid((m + block.x - 1) / block.x,(n + block.y - 1) / block.y);
@@ -96,19 +120,35 @@ double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, 
 
     cudaDeviceSynchronize();
 
-    cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
-
     double error = 0.0;
 
-    for( int j = 1; j < n-1; j++)
-    {
-        for( int i = 1; i < m-1; i++ )
-        {
-            error = fmax( error, fabs(h_Anew[OFFSET(j, i, m)] - h_A[OFFSET(j, i , m)]));
-        }
+    int blockSize = 256;
+    int numBlocks = (n*m + blockSize - 1) / blockSize;
+
+    size_t maxBytes = numBlocks * sizeof(double);
+
+    double *h_max = (double*)malloc(maxBytes);
+    double *d_max;
+    cudaMalloc((void**)&d_max, maxBytes);
+    
+    reduce0<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_A,d_Anew,n,m,d_max);
+    cudaDeviceSynchronize();
+    
+    err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("Kernel launch error: %s\n", cudaGetErrorString(err));
     }
 
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(h_max, d_max, maxBytes, cudaMemcpyDeviceToHost);
+
+    error = h_max[0];
+    for (int i = 1; i < numBlocks; ++i) {
+        if(error < h_max[i])
+            error = h_max[i];
+    }
+    
     return error;
 }
 
