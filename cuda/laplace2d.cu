@@ -221,10 +221,10 @@ void swap(double *d_A, double *d_Anew, int m, int n)
 
 }
 
-void deallocate(double *A, double *Anew, double *d_A, double *d_Anew)
+void deallocate(double *h_A, double *h_Anew, double *d_A, double *d_Anew)
 {
-    free(A);
-    free(Anew);
+    free(h_A);
+    free(h_Anew);
     cudaFree(d_A);
     cudaFree(d_Anew);
 }

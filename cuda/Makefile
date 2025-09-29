@@ -1,6 +1,5 @@
 CC = nvcc
-
-CFLAGS = #-Xcompiler #-fopenmp 
+CFLAGS = -Xcompiler "-Wall -Werror" #-fopenmp 
 
 all: laplace2d.cu jacobi.cu
 	$(CC) laplace2d.cu jacobi.cu -o laplace $(CFLAGS)

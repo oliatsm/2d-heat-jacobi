@@ -56,8 +56,6 @@ int main(int argc, char** argv)
        
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
     
-    // double st = omp_get_wtime();
-
     GpuTimer timer;
 
     timer.Start();
@@ -81,8 +79,8 @@ int main(int argc, char** argv)
 
     // Copy Data to host for output
     
-    // cudaMemcpy(d_A, h_A, bytes, cudaMemcpyHostToDevice);
-    // cudaMemcpy(d_Anew, h_Anew, bytes, cudaMemcpyHostToDevice);
+    // cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
+    // cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
 
     // file_output(h_Anew,n,m,"output.txt");
 
