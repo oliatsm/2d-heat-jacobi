@@ -96,8 +96,8 @@ __global__
 void stencil_cu(double * d_A, double * d_Anew, int m, int n)
 {   
     // global indicies for rows (j) and columns (i)
-    // i range from 1 to n-2, j ragne from 1 to m-2
-    // i=0, j=0, i=n-1 and j=m-1 contain boundary conditions, they don't change
+    // i range from 1 to m-2, j ragne from 1 to n-2
+    // i=0, j=0, i=m-1 and j=n-1 contain boundary conditions, they don't change
 
     int i = blockIdx.x*blockDim.x + threadIdx.x+1; // columns
     int j = blockIdx.y*blockDim.y + threadIdx.y+1; //rows

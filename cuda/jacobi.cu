@@ -93,7 +93,7 @@ int main(int argc, char** argv)
     cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
     cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
 
-    file_output(h_Anew,n,m,"output.txt");
+    file_output(h_Anew,m,n,"output.txt");
 
     deallocate(h_A, h_Anew,d_A,d_Anew);
 
