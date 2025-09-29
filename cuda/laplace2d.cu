@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>   // <-- Required for memset
+#include <string.h>   
+
 // CUDA runtime
 #include <cuda.h>
 #include <cuda_runtime.h>

@@ -47,7 +47,6 @@ int main(int argc, char** argv)
     initialize(A, Anew, m, n);
         
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
-    // file_output(Anew,n,m,"input.txt");
     
     double st = omp_get_wtime();
     int iter = 0;
@@ -67,7 +66,7 @@ int main(int argc, char** argv)
  
     printf(" total: %f s\n", runtime);
 
-    file_output(Anew,n,m,"output.gold.txt");
+    // file_output(Anew,n,m,"output.gold.txt");
 
     deallocate(A, Anew);
 
