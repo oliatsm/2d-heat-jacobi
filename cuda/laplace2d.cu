@@ -130,7 +130,7 @@ void max_reduce(double *A, double *Anew, int n, int m, double *d_max){
 
 
 
-double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, int n)
+double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double *d_max, int maxSize)
 {
     // Separate Anew calculation and error calculation
 
@@ -158,16 +158,8 @@ double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, 
     double error = 0.0;
 
     // 1d me
-    int blockSize = 256;
+    int blockSize = maxSize;
     int numBlocks = (n*m + blockSize - 1) / blockSize;
-
-    // max array is used for local max calculation in each block
-    // max[numBlocks]
-    int maxBytes = numBlocks * sizeof(double);
-
-    double *h_max = (double*)malloc(maxBytes);
-    double *d_max;
-    cudaMalloc((void**)&d_max, maxBytes);
     
     max_reduce<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_A,d_Anew,n,m,d_max);
     cudaDeviceSynchronize();
@@ -179,7 +171,7 @@ double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, 
 
     cudaDeviceSynchronize();
 
-    cudaMemcpy(h_max, d_max, maxBytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_max, d_max, maxSize*sizeof(double), cudaMemcpyDeviceToHost);
 
     // final reduction for max
     error = h_max[0];
@@ -188,6 +180,7 @@ double calcNext(double *h_A, double *h_Anew,double *d_A, double *d_Anew, int m, 
             error = h_max[i];
     }
     
+
     return error;
 }
 
@@ -208,7 +201,7 @@ void swap(double *d_A, double *d_Anew, int m, int n)
 {
 
     dim3 block(16,16);
-    dim3 grid((m + block.x - 1) / block.x,(n + block.y - 1) / block.y);
+    dim3 grid((n + block.x - 1) / block.x,(m + block.y - 1) / block.y);
 
 
     swap_cu<<<grid, block>>>(d_A, d_Anew, m, n);

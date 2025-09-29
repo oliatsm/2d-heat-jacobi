@@ -52,6 +52,17 @@ int main(int argc, char** argv)
     cudaMalloc((void**)&d_A,bytes);
     cudaMalloc((void**)&d_Anew,bytes);
 
+    // For Error calculation on device
+    int maxSize = 256;
+    // max array is used for local max calculation in each block
+    // max[numBlocks]
+    int maxBytes = (n*m + maxSize - 1) / maxSize * sizeof(double);
+
+    double *h_max = (double*)malloc(maxBytes);
+    double *d_max;
+    cudaMalloc((void**)&d_max, maxBytes);
+    
+
     initialize(h_A, h_Anew, d_A, d_Anew, m, n);
        
     printf("Jacobi relaxation Calculation: %d x %d mesh\n", n, m);
@@ -64,7 +75,7 @@ int main(int argc, char** argv)
    
     while ( error > tol && iter < iter_max )
     {
-        error = calcNext(h_A, h_Anew, d_A, d_Anew, m, n);
+        error = calcNext(d_A, d_Anew, m, n, h_max, d_max, maxSize);
         swap(d_A, d_Anew, m, n);
         
         if(iter % 100 == 0) printf("%5d, %0.6f\n", iter, error);
@@ -85,6 +96,10 @@ int main(int argc, char** argv)
     // file_output(h_Anew,n,m,"output.txt");
 
     deallocate(h_A, h_Anew,d_A,d_Anew);
+
+    cudaFree(d_max);
+    free(h_max);
+
 
     return 0;
 }

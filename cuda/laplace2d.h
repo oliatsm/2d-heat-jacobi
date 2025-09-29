@@ -28,13 +28,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-void initialize(double *A, double *Anew, double *d_A, double *d_Anew, int m, int n);
+void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m, int n);
 
-double calcNext(double *A, double *Anew, double *d_A, double *d_Anew, int m, int n);
+double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double *d_max, int maxSize);
         
-void swap(double *A, double *Anew, int m, int n);
+void swap(double *d_A, double *d_Anew, int m, int n);
 
-void deallocate(double *A, double *Anew, double *d_A, double *d_Anew);
+void deallocate(double *h_A, double *h_Anew, double *d_A, double *d_Anew);
 
 int file_output(double *A, int n, int m, const char *file_name);
 
