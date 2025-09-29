@@ -36,6 +36,6 @@ void swap(double *d_A, double *d_Anew, int m, int n);
 
 void deallocate(double *h_A, double *h_Anew, double *d_A, double *d_Anew);
 
-int file_output(double *A, int n, int m, const char *file_name);
+int file_output(double *A, int m, int n, const char *file_name);
 
 #endif

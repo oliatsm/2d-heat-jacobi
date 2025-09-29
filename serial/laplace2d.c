@@ -87,9 +87,9 @@ int file_output(double *A, int n, int m, const char *file_name){
     }
     else{
 
-        for(int i=0;i<n;i++){
-            for(int j=0;j<m;j++){
-                fprintf(output,"%.4f, ",A[OFFSET(i,j,m)]);
+        for(int j=0;j<n;j++){
+            for(int i=0;i<m;i++){
+                fprintf(output,"%.4f, ",A[OFFSET(j,i,m)]);
             }
             fprintf(output,"\n");
         }

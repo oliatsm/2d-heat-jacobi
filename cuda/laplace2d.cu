@@ -8,10 +8,25 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
+// ──────────────────────────────────────────────────────────────
+// Coordinate convention used in this code:
+//
+//  • X dimension  →  columns   (i index)      →  max size = m
+//  • Y dimension  →  rows      (j index)      →  max size = n
+//
+//  • OFFSET(row, col, m) gives the 1-D index for a 2-D array
+//    stored in row-major order, where `m` = total number of columns.
+//    Example: element at (row=j, col=i) is A[OFFSET(j, i, m)].
+//
+//  In CUDA kernels:
+//      threadIdx.x / blockIdx.x  → column index
+//      threadIdx.y / blockIdx.y  → row index
+// ──────────────────────────────────────────────────────────────
+
 #define OFFSET(x, y, m) (((x)*(m)) + (y))
 
 // funtion for exporting the 2D Arrays on textfiles
-int file_output(double *A, int n, int m, const char *file_name){
+int file_output(double *A, int m, int n, const char *file_name){
 
     FILE* output;
     output = fopen(file_name,"w");
@@ -22,9 +37,9 @@ int file_output(double *A, int n, int m, const char *file_name){
     }
     else{
 
-        for(int j=0;j<m;j++){
-            for(int i=0;i<n;i++){
-                fprintf(output,"%.4f, ",A[OFFSET(j,i,n)]);
+        for(int j=0;j<n;j++){
+            for(int i=0;i<m;i++){
+                fprintf(output,"%.4f, ",A[OFFSET(j,i,m)]);
             }
             fprintf(output,"\n");
         }
@@ -39,7 +54,7 @@ __global__
 void initialize_cu(double * d_A, double * d_Anew, int m, int n)
 {
     int i = blockIdx.x*blockDim.x + threadIdx.x;
-    if(i<n){
+    if(i<m){
     
         d_A[OFFSET(0,i,m)] = 1.0;
         d_Anew[OFFSET(0,i,m)] = 1.0;
@@ -63,7 +78,7 @@ void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m,
     // number of blocks to cover n elements with blockSize threads each.
 
     int blockSize = 256;
-    int numBlocks = (n + blockSize - 1) / blockSize; 
+    int numBlocks = (m + blockSize - 1) / blockSize; 
 
     initialize_cu<<<numBlocks, blockSize>>>(d_A, d_Anew, m, n);
 
@@ -87,7 +102,7 @@ void stencil_cu(double * d_A, double * d_Anew, int m, int n)
     int i = blockIdx.x*blockDim.x + threadIdx.x+1; // columns
     int j = blockIdx.y*blockDim.y + threadIdx.y+1; //rows
 
-    if(i<(n-1) && j<(m-1)){
+    if(i<(m-1) && j<(n-1)){
     
         d_Anew[OFFSET(j, i, m)] = 0.25 * ( d_A[OFFSET(j, i+1, m)] + d_A[OFFSET(j, i-1, m)] 
                                        + d_A[OFFSET(j-1, i, m)] + d_A[OFFSET(j+1, i, m)]);
@@ -96,7 +111,7 @@ void stencil_cu(double * d_A, double * d_Anew, int m, int n)
 
 // Reduction for error calculation
 __global__ 
-void max_reduce(double *A, double *Anew, int n, int m, double *d_max){
+void max_reduce(double *A, double *Anew, int m, int n, double *d_max){
 
     //shared memory: size blockDim (blockSize) 
     //1d access, no spatial dependence of data
@@ -161,7 +176,7 @@ double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double
     int blockSize = maxSize;
     int numBlocks = (n*m + blockSize - 1) / blockSize;
     
-    max_reduce<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_A,d_Anew,n,m,d_max);
+    max_reduce<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_A,d_Anew,m,n,d_max);
     cudaDeviceSynchronize();
     
     cuda_err = cudaGetLastError();
@@ -189,7 +204,7 @@ void swap_cu(double *d_A, double *d_Anew, int m, int n){
     int i = blockIdx.x*blockDim.x + threadIdx.x+1;
     int j = blockIdx.y*blockDim.y + threadIdx.y+1;
 
-    if(i<(n-1) && j<(m-1)){
+    if(i<(m-1) && j<(n-1)){
         d_A[OFFSET(j, i, m)] = d_Anew[OFFSET(j, i, m)];        
     }
 
@@ -199,7 +214,7 @@ void swap(double *d_A, double *d_Anew, int m, int n)
 {
 
     dim3 block(16,16);
-    dim3 grid((n + block.x - 1) / block.x,(m + block.y - 1) / block.y);
+    dim3 grid((m + block.x - 1) / block.x,(n + block.y - 1) / block.y);
 
 
     swap_cu<<<grid, block>>>(d_A, d_Anew, m, n);

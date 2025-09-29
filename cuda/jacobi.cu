@@ -35,8 +35,8 @@
 
 int main(int argc, char** argv)
 {
-    const int n = 4096;
-    const int m = 4096;
+    const int n = 4096/8;
+    const int m = 4096/6;
     const int iter_max = 1000;
     
     const double tol = 1.0e-6;
@@ -90,10 +90,10 @@ int main(int argc, char** argv)
 
     // Copy Data to host for output
     
-    // cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
-    // cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_A, d_A, bytes, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_Anew, d_Anew, bytes, cudaMemcpyDeviceToHost);
 
-    // file_output(h_Anew,n,m,"output.txt");
+    file_output(h_Anew,n,m,"output.txt");
 
     deallocate(h_A, h_Anew,d_A,d_Anew);
 
