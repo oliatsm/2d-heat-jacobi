@@ -47,6 +47,7 @@ $$
 
 - CPU: AMD Ryzen 7 5800X 8-Core Processor
 - GPU: NVIDIA GeForce RTX 4070 Ti
+- Ubuntu 22.04.1
 
 ---
 ## Build & Run
