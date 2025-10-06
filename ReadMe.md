@@ -32,6 +32,21 @@ $$
 
 - `cuda/` – GPU implementation in CUDA.
 
+---
+
+## Performance
+
+|Grid Size  | Serial    | CUDA     | Speedup|
+| ---       | ---:      | ---:     | ---:   |
+|1024 x 1024|   6.6511 s| 0.0757 s | 88x    |
+|2048 x 2048|  26.7749 s| 0.4801 s | 55x    |
+|4096 x 4096| 154.8857 s| 2.4873 s | 62x    | 
+|8192 x 8192| 437.6124 s| 7.7569 s | 56x    |
+
+### Environment
+
+- CPU: AMD Ryzen 7 5800X 8-Core Processor
+- GPU: NVIDIA GeForce RTX 4070 Ti
 
 ---
 ## Build & Run

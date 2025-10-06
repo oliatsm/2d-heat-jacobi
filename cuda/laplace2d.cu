@@ -89,7 +89,7 @@ void initialize_cu(double * d_A, double * d_Anew, int m, int n)
 
 void initialize(double *h_A, double *h_Anew, double *d_A, double *d_Anew, int m, int n)
 {
-    int bytes = sizeof(double)*n*m;
+    size_t bytes = sizeof(double)*n*m;
 
     //Initialise arrays on host and device
 
@@ -126,7 +126,7 @@ void stencil_cu(double * d_A, double * d_Anew, int m, int n)
     // i=0, j=0, i=m-1 and j=n-1 contain boundary conditions, they don't change
 
     int i = blockIdx.x*blockDim.x + threadIdx.x+1; // columns
-    int j = blockIdx.y*blockDim.y + threadIdx.y+1; //rows
+    int j = blockIdx.y*blockDim.y + threadIdx.y+1; // rows
 
     if(i<(m-1) && j<(n-1)){
     
@@ -201,9 +201,7 @@ double calcNext(double *d_A, double *d_Anew, int m, int n, double *h_max, double
     //   error: max reduce    
     //****************************
     double error = 0.0;
-
-    // 1d me
-        
+       
     max_reduce<<<numBlocks, blockSize, blockSize * sizeof(double)>>>(d_A,d_Anew,m,n,d_max);
     cudaDeviceSynchronize();
     

@@ -35,8 +35,8 @@
 
 int main(int argc, char** argv)
 {
-    const int n = 4096;
-    const int m = 4096;
+    const int n = 4096*4;
+    const int m = 4096*4;
     const int iter_max = 1000;
     
     const double tol = 1.0e-6;
